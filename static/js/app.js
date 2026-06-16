@@ -20,6 +20,7 @@ let circumference = 0;
 const elements = {
     refreshBtn: document.getElementById('refresh-btn'),
     refreshIcon: document.getElementById('refresh-icon'),
+    exportCsvBtn: document.getElementById('export-csv-btn'),
     connectionStatus: document.getElementById('connection-status'),
     
     // Stats
@@ -75,9 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // EVENT LISTENERS SETUP
 // ----------------------------------------------------
 function setupEventListeners() {
-    // Refresh buttons
+    // Refresh & Export buttons
     elements.refreshBtn.addEventListener('click', () => fetchReleaseNotes(true));
     elements.retryBtn.addEventListener('click', () => fetchReleaseNotes(true));
+    elements.exportCsvBtn.addEventListener('click', exportToCSV);
     
     // Filter & Sort inputs
     elements.searchInput.addEventListener('input', handleSearchInput);
@@ -300,9 +302,14 @@ function renderNotesList() {
                     ${stylizedContent}
                 </div>
                 <div class="card-footer">
-                    <button class="btn btn-secondary btn-icon tweet-card-btn" onclick="openTweetComposer('${note.id}')">
-                        <i class="fa-brands fa-x-twitter"></i> Tweet Update
-                    </button>
+                    <div class="card-footer-buttons">
+                        <button class="btn btn-secondary btn-icon tweet-card-btn" onclick="openTweetComposer('${note.id}')" title="Tweet about this update">
+                            <i class="fa-brands fa-x-twitter"></i> Tweet
+                        </button>
+                        <button class="btn btn-secondary btn-icon copy-card-btn" onclick="copyNoteToClipboard('${note.id}')" title="Copy update content">
+                            <i class="fa-solid fa-copy"></i> Copy
+                        </button>
+                    </div>
                     <a href="${note.link}" target="_blank" rel="noopener noreferrer" class="source-anchor">
                         Docs <i class="fa-solid fa-up-right-from-square"></i>
                     </a>
@@ -594,4 +601,79 @@ function showToast(message, type = 'success') {
     toastTimeout = setTimeout(() => {
         elements.toast.style.display = 'none';
     }, 4000);
+}
+
+// ----------------------------------------------------
+// COPY & EXPORT UTILITIES
+// ----------------------------------------------------
+window.copyNoteToClipboard = function(noteId) {
+    const note = state.notes.find(n => n.id === noteId);
+    if (!note) return;
+    
+    const copyText = `📢 [BigQuery Update - ${note.date}] (${note.type})\n\n${note.text}\n\nRead more: ${note.link}`;
+    
+    navigator.clipboard.writeText(copyText)
+        .then(() => {
+            showToast("Copied to clipboard!", "success");
+        })
+        .catch(err => {
+            console.error("Failed to copy: ", err);
+            showToast("Failed to copy content.", "error");
+        });
+};
+
+function exportToCSV() {
+    if (state.filteredNotes.length === 0) {
+        showToast("No release notes available to export.", "error");
+        return;
+    }
+    
+    // Helper to escape values for CSV compatibility
+    const escapeCSV = (val) => {
+        if (val === null || val === undefined) return '';
+        let formatted = val.toString().replace(/"/g, '""');
+        if (formatted.includes(',') || formatted.includes('\n') || formatted.includes('"')) {
+            formatted = `"${formatted}"`;
+        }
+        return formatted;
+    };
+    
+    // CSV Columns
+    const headers = ['Date', 'Category', 'Update Content', 'Source Link'];
+    const rows = state.filteredNotes.map(note => [
+        note.date,
+        note.type,
+        note.text,
+        note.link
+    ]);
+    
+    // Construct CSV string
+    const csvContent = [
+        headers.map(escapeCSV).join(','),
+        ...rows.map(row => row.map(escapeCSV).join(','))
+    ].join('\r\n');
+    
+    // Trigger browser download
+    try {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        
+        // Dynamic filename containing date and count
+        const categoryTag = state.activeCategory !== 'ALL' ? `_${state.activeCategory.toLowerCase()}` : '';
+        const dateStr = new Date().toISOString().slice(0, 10);
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", `bigquery_release_notes${categoryTag}_${dateStr}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Exported ${state.filteredNotes.length} notes to CSV!`, "success");
+    } catch (error) {
+        console.error("CSV export failed: ", error);
+        showToast("Failed to export CSV.", "error");
+    }
 }

@@ -665,6 +665,11 @@ a:hover {
     margin-top: auto;
 }
 
+.card-footer-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
 .source-anchor {
     font-size: 0.8rem;
     color: var(--text-muted);
