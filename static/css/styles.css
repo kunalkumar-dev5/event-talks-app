@@ -12,6 +12,10 @@
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
     
+    --bg-modal: #0c111d;
+    --bg-code: #1e293b;
+    --text-code: #cbd5e1;
+    
     /* Brand Accents */
     --accent-blue: #3b82f6;
     --accent-blue-hover: #2563eb;
@@ -46,6 +50,66 @@
     --transition-fast: 0.15s ease;
     --transition-normal: 0.25s ease;
     --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ----------------------------------------------------
+   LIGHT MODE OVERRIDES
+   ---------------------------------------------------- */
+body.light-mode {
+    --bg-primary: #f1f5f9;
+    --bg-secondary: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.75);
+    --border-glass: rgba(15, 23, 42, 0.08);
+    --border-glass-hover: rgba(15, 23, 42, 0.15);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --accent-blue: #2563eb;
+    --accent-blue-hover: #1d4ed8;
+    --accent-purple: #7c3aed;
+    
+    --bg-modal: #ffffff;
+    --bg-code: #f1f5f9;
+    --text-code: #334155;
+    
+    --color-feature-bg: rgba(16, 185, 129, 0.12);
+    --color-issue-bg: rgba(245, 158, 11, 0.12);
+    --color-deprecation-bg: rgba(239, 68, 68, 0.12);
+    --color-other-bg: rgba(100, 116, 139, 0.12);
+    
+    --shadow-glow: 0 0 25px rgba(37, 99, 235, 0.06);
+}
+
+body.light-mode .glow-spot {
+    opacity: 0.04;
+}
+
+body.light-mode .modal-overlay {
+    background-color: rgba(15, 23, 42, 0.4);
+}
+
+body.light-mode .mock-avatar {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    color: #475569;
+}
+
+body.light-mode .tag-helper-label {
+    color: #475569;
+}
+
+body.light-mode .badge-tag {
+    background-color: #f1f5f9;
+    color: #2563eb;
+}
+
+body.light-mode .badge-tag:hover {
+    background-color: rgba(37, 99, 235, 0.1);
+}
+
+body.light-mode .progress-ring__circle-bg {
+    stroke: #e2e8f0;
 }
 
 /* ----------------------------------------------------
@@ -640,10 +704,10 @@ a:hover {
 .card-body code {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.85rem;
-    background-color: #1e293b;
+    background-color: var(--bg-code);
     padding: 0.15rem 0.35rem;
     border-radius: var(--radius-sm);
-    color: #cbd5e1;
+    color: var(--text-code);
 }
 
 .card-body ul, .card-body ol {
@@ -821,7 +885,7 @@ a:hover {
 }
 
 .modal-content {
-    background-color: #0c111d;
+    background-color: var(--bg-modal);
     border: 1px solid var(--border-glass-hover);
     border-radius: var(--radius-lg);
     width: 100%;

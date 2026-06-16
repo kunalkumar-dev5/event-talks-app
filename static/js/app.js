@@ -21,6 +21,8 @@ const elements = {
     refreshBtn: document.getElementById('refresh-btn'),
     refreshIcon: document.getElementById('refresh-icon'),
     exportCsvBtn: document.getElementById('export-csv-btn'),
+    themeToggleBtn: document.getElementById('theme-toggle-btn'),
+    themeToggleIcon: document.getElementById('theme-toggle-icon'),
     connectionStatus: document.getElementById('connection-status'),
     
     // Stats
@@ -67,6 +69,7 @@ const elements = {
 // INITIALIZATION
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     initProgressRing();
     setupEventListeners();
     fetchReleaseNotes(false);
@@ -80,6 +83,7 @@ function setupEventListeners() {
     elements.refreshBtn.addEventListener('click', () => fetchReleaseNotes(true));
     elements.retryBtn.addEventListener('click', () => fetchReleaseNotes(true));
     elements.exportCsvBtn.addEventListener('click', exportToCSV);
+    elements.themeToggleBtn.addEventListener('click', toggleTheme);
     
     // Filter & Sort inputs
     elements.searchInput.addEventListener('input', handleSearchInput);
@@ -675,5 +679,37 @@ function exportToCSV() {
     } catch (error) {
         console.error("CSV export failed: ", error);
         showToast("Failed to export CSV.", "error");
+    }
+}
+
+// ----------------------------------------------------
+// THEME SWITCHING (LIGHT/DARK)
+// ----------------------------------------------------
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        elements.themeToggleIcon.className = 'fa-solid fa-moon';
+        elements.themeToggleBtn.title = 'Switch to Dark Mode';
+    } else {
+        document.body.classList.remove('light-mode');
+        elements.themeToggleIcon.className = 'fa-solid fa-sun';
+        elements.themeToggleBtn.title = 'Switch to Light Mode';
+    }
+}
+
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-mode');
+    
+    if (isLight) {
+        elements.themeToggleIcon.className = 'fa-solid fa-moon';
+        elements.themeToggleBtn.title = 'Switch to Dark Mode';
+        localStorage.setItem('theme', 'light');
+        showToast("Switched to Light Mode!", "success");
+    } else {
+        elements.themeToggleIcon.className = 'fa-solid fa-sun';
+        elements.themeToggleBtn.title = 'Switch to Light Mode';
+        localStorage.setItem('theme', 'dark');
+        showToast("Switched to Dark Mode!", "success");
     }
 }
