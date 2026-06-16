@@ -131,6 +131,15 @@
             </div>
         </section>
 
+        <!-- Cache Warning Banner -->
+        <div id="cache-banner" class="cache-banner" style="display: none;">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span id="cache-banner-text">Showing cached notes.</span>
+            <button id="cache-banner-refresh" class="cache-banner-refresh-btn">
+                <i class="fa-solid fa-arrows-rotate"></i> Sync Live
+            </button>
+        </div>
+
         <!-- Main Display / Notes Grid -->
         <main class="notes-container">
             <!-- Loading Skeleton Grid -->
@@ -220,6 +229,7 @@
                         <circle class="progress-ring__circle" stroke="#1da1f2" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
                     </svg>
                     <span id="char-counter-text">280</span>
+                    <button id="auto-trim-btn" class="auto-trim-link" style="display: none;">Auto-trim</button>
                 </div>
                 <div class="modal-buttons">
                     <button id="copy-tweet-btn" class="btn btn-secondary btn-icon">
@@ -238,6 +248,11 @@
         <i class="fa-solid fa-circle-check toast-icon"></i>
         <span id="toast-message">Copied to clipboard!</span>
     </div>
+
+    <!-- Floating Back to Top Button -->
+    <button id="back-to-top-btn" class="back-to-top-btn" title="Scroll to Top" style="display: none;">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 
     <!-- Main JS -->
     <script src="/static/js/app.js"></script>

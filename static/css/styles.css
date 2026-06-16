@@ -1158,3 +1158,117 @@ a:hover {
     from { transform: translateY(100px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+/* ----------------------------------------------------
+   UX ENHANCEMENTS & UTILITY STYLES
+   ---------------------------------------------------- */
+.back-to-top-btn {
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    background: var(--bg-glass);
+    border: 1px solid var(--border-glass-hover);
+    color: var(--text-primary);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 99;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all var(--transition-fast);
+    animation: fadeIn var(--transition-fast);
+}
+
+.back-to-top-btn:hover {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue-hover);
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* Search Term Highlights */
+mark.highlight {
+    background-color: rgba(250, 204, 21, 0.35);
+    color: var(--text-primary);
+    border-radius: 2px;
+    padding: 0 2px;
+}
+body.light-mode mark.highlight {
+    background-color: rgba(234, 179, 8, 0.3);
+}
+
+/* Cache Banner */
+.cache-banner {
+    background: rgba(245, 158, 11, 0.06);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    color: var(--color-issue);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    animation: fadeIn var(--transition-fast);
+}
+
+body.light-mode .cache-banner {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+.cache-banner-refresh-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-issue);
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: auto;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.cache-banner-refresh-btn:hover {
+    color: var(--color-issue);
+    text-decoration: none;
+}
+
+/* Auto-trim Tweet Composer button */
+.auto-trim-link {
+    background: transparent;
+    border: none;
+    color: var(--accent-blue);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: 0.75rem;
+    font-family: inherit;
+}
+
+.auto-trim-link:hover {
+    color: var(--accent-blue-hover);
+    text-decoration: none;
+}
+
+/* External Link Accent Icon */
+.external-link-icon {
+    font-size: 0.7rem;
+    margin-left: 0.25rem;
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+}
+
+.card-body a:hover .external-link-icon {
+    opacity: 1;
+}

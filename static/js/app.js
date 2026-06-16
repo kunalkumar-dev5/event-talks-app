@@ -23,6 +23,11 @@ const elements = {
     exportCsvBtn: document.getElementById('export-csv-btn'),
     themeToggleBtn: document.getElementById('theme-toggle-btn'),
     themeToggleIcon: document.getElementById('theme-toggle-icon'),
+    backToTopBtn: document.getElementById('back-to-top-btn'),
+    cacheBanner: document.getElementById('cache-banner'),
+    cacheBannerText: document.getElementById('cache-banner-text'),
+    cacheBannerRefresh: document.getElementById('cache-banner-refresh'),
+    autoTrimBtn: document.getElementById('auto-trim-btn'),
     connectionStatus: document.getElementById('connection-status'),
     
     // Stats
@@ -79,11 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
 // EVENT LISTENERS SETUP
 // ----------------------------------------------------
 function setupEventListeners() {
-    // Refresh & Export buttons
+    // Refresh, Export & Theme buttons
     elements.refreshBtn.addEventListener('click', () => fetchReleaseNotes(true));
     elements.retryBtn.addEventListener('click', () => fetchReleaseNotes(true));
     elements.exportCsvBtn.addEventListener('click', exportToCSV);
     elements.themeToggleBtn.addEventListener('click', toggleTheme);
+    elements.backToTopBtn.addEventListener('click', scrollToTop);
+    elements.cacheBannerRefresh.addEventListener('click', () => fetchReleaseNotes(true));
+    elements.autoTrimBtn.addEventListener('click', handleAutoTrim);
+    
+    // Global keyboard & scroll listeners
+    window.addEventListener('scroll', handleWindowScroll);
+    window.addEventListener('keydown', handleGlobalKeydown);
+    elements.tweetTextarea.addEventListener('keydown', handleComposerKeydown);
     
     // Filter & Sort inputs
     elements.searchInput.addEventListener('input', handleSearchInput);
@@ -145,6 +158,20 @@ async function fetchReleaseNotes(force = false) {
         // Update connection display status
         setOnlineStatus(true);
         
+        // Manage cache warning banner status
+        if (data.source === 'cache' || data.source === 'cache_fallback') {
+            const minutesAgo = Math.round((Date.now() / 1000 - data.last_fetched) / 60);
+            const timeText = minutesAgo <= 0 ? 'just now' : `${minutesAgo} minute${minutesAgo !== 1 ? 's' : ''} ago`;
+            if (data.source === 'cache_fallback') {
+                elements.cacheBannerText.textContent = `Connection Offline: Showing cached notes from ${timeText}.`;
+            } else {
+                elements.cacheBannerText.textContent = `Showing cached notes synced ${timeText}.`;
+            }
+            elements.cacheBanner.style.display = 'flex';
+        } else {
+            elements.cacheBanner.style.display = 'none';
+        }
+        
         // Recalculate stats counters & populate dashboard
         updateStatsCounters();
         
@@ -163,6 +190,8 @@ async function fetchReleaseNotes(force = false) {
         if (state.notes.length === 0) {
             showErrorState(error.message);
         } else {
+            elements.cacheBannerText.textContent = "Offline Mode: Showing locally cached notes due to connection error.";
+            elements.cacheBanner.style.display = 'flex';
             showToast("Failed to sync latest updates. Showing cached version.", "error");
         }
     } finally {
@@ -292,7 +321,8 @@ function renderNotesList() {
         const badgeIcon = getCategoryIcon(note.type);
         
         // Make links open in new tab and apply styled custom icons to external links
-        let stylizedContent = note.content;
+        // Highlight search query segments in text nodes safely
+        let stylizedContent = highlightSearchText(note.content, state.searchQuery);
         
         html += `
             <article class="note-card ${typeClass}" data-id="${note.id}">
@@ -323,6 +353,18 @@ function renderNotesList() {
     });
     
     elements.notesGrid.innerHTML = html;
+    
+    // Inject target="_blank" and external link icons to all card links safely
+    const cardLinks = elements.notesGrid.querySelectorAll('.card-body a');
+    cardLinks.forEach(link => {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+        if (!link.querySelector('.external-link-icon')) {
+            const icon = document.createElement('i');
+            icon.className = 'fa-solid fa-arrow-up-right-from-square external-link-icon';
+            link.appendChild(icon);
+        }
+    });
     elements.notesGrid.style.display = 'grid';
 }
 
@@ -516,14 +558,17 @@ function updateCharCounter() {
         elements.progressCircle.style.stroke = 'var(--color-deprecation)';
         elements.charCounterText.className = 'danger';
         elements.publishTweetBtn.disabled = true;
+        elements.autoTrimBtn.style.display = 'inline-block';
     } else if (remaining <= 30) {
         elements.progressCircle.style.stroke = 'var(--color-issue)';
         elements.charCounterText.className = 'warning';
         elements.publishTweetBtn.disabled = false;
+        elements.autoTrimBtn.style.display = 'none';
     } else {
         elements.progressCircle.style.stroke = 'var(--twitter-color)';
         elements.charCounterText.className = '';
         elements.publishTweetBtn.disabled = false;
+        elements.autoTrimBtn.style.display = 'none';
     }
 }
 
@@ -712,4 +757,92 @@ function toggleTheme() {
         localStorage.setItem('theme', 'dark');
         showToast("Switched to Dark Mode!", "success");
     }
+}
+
+// ----------------------------------------------------
+// UX ENHANCEMENTS AND UTILITY FUNCTIONS
+// ----------------------------------------------------
+
+// Safe HTML search query highlighter
+function highlightSearchText(htmlContent, query) {
+    if (!query) return htmlContent;
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    
+    const escapedQuery = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    
+    function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent;
+            if (regex.test(text)) {
+                const span = document.createElement('span');
+                span.innerHTML = text.replace(regex, '<mark class="highlight">$1</mark>');
+                node.parentNode.replaceChild(span, node);
+            }
+        } else {
+            const children = Array.from(node.childNodes);
+            children.forEach(traverse);
+        }
+    }
+    
+    traverse(doc.body);
+    return doc.body.innerHTML;
+}
+
+// Back to top scroll handlers
+function handleWindowScroll() {
+    if (window.scrollY > 400) {
+        elements.backToTopBtn.style.display = 'flex';
+    } else {
+        elements.backToTopBtn.style.display = 'none';
+    }
+}
+
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+// Keyboard accessibility handlers
+function handleGlobalKeydown(e) {
+    // Close composer modal on Escape
+    if (e.key === 'Escape' && elements.tweetModal.style.display === 'flex') {
+        closeTweetModal();
+    }
+}
+
+// Keyboard composer listener
+function handleComposerKeydown(e) {
+    // Submit tweet on Ctrl+Enter or Cmd+Enter
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        handlePublishTweet();
+    }
+}
+
+// Safe auto-trim tweet content helper
+function handleAutoTrim() {
+    const currentText = elements.tweetTextarea.value;
+    const linkMarker = "\n\nRead more: ";
+    const linkIndex = currentText.lastIndexOf(linkMarker);
+    
+    if (linkIndex === -1) {
+        elements.tweetTextarea.value = currentText.slice(0, 280);
+    } else {
+        const linkPart = currentText.substring(linkIndex);
+        const textPart = currentText.substring(0, linkIndex);
+        const targetTextLen = 280 - linkPart.length;
+        
+        if (targetTextLen > 3) {
+            elements.tweetTextarea.value = textPart.slice(0, targetTextLen - 3) + "..." + linkPart;
+        } else {
+            elements.tweetTextarea.value = currentText.slice(0, 280);
+        }
+    }
+    updateCharCounter();
+    showToast("Tweet auto-trimmed to fit limit!", "success");
 }
